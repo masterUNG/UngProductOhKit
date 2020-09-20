@@ -41,5 +41,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Need for Upload Avatar Image to Server</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Need for Upload Avatar Image to Server</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Need for Upload Video to Server</string>
 </dict>
 </plist>
