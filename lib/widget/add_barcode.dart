@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:ungproduct/models/ung_document_model.dart';
 import 'package:ungproduct/utility/normal_dialog.dart';
 
 class AddBarCode extends StatefulWidget {
@@ -190,13 +191,15 @@ class _AddBarCodeState extends State<AddBarCode> {
   }
 
   Future<Null> processInsertData() async {
-    print('urlImages ==>> ${urlImages.toString()}');
+    UngDocumentModel model = UngDocumentModel(pathImages: urlImages);
+
     await FirebaseFirestore.instance
         .collection('UngDocument')
-        .doc('barcodeResult')
-        .snapshots()
-        .listen((event) {
-      print('event ==>> ${event.data()}');
+        .doc(barcodeResult)
+        .set(model.toJSON())
+        .then((value) {
+      print('Insert Success');
+      Navigator.pop(context);
     });
   }
 }

@@ -1,10 +1,15 @@
 class UngDocumentModel {
   List<String> pathImages;
 
-  UngDocumentModel(this.pathImages);
+  UngDocumentModel({this.pathImages});
 
   UngDocumentModel.fromJson(Map<String, dynamic> json) {
-    pathImages = json['pathImage'];
+    print('json[pathImage]  ==>> ${json["pathImage"]}');
+    var result = json['pathImage'];
+    for (var item in result) {
+      pathImages.add(item);
+    }
+    // pathImages = json['pathImage'];
   }
 
   Map<String, dynamic> toJSON() {
