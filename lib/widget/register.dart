@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:ungproduct/models/user_model.dart';
 import 'package:ungproduct/utility/my_constant.dart';
 import 'package:ungproduct/utility/my_style.dart';
 import 'package:ungproduct/utility/normal_dialog.dart';
@@ -226,5 +229,29 @@ class _RegisterState extends State<Register> {
 
   Future uploadAvatarToFirebase(String uid) async {
     print('uid ==>> $uid');
+    String nameAvatar = '$uid.jpg';
+
+    String urlAvatar = await (await FirebaseStorage.instance
+            .ref()
+            .child('Avatar/$nameAvatar')
+            .putFile(file)
+            .onComplete)
+        .ref
+        .getDownloadURL();
+    print('urlAvatar = $urlAvatar');
+    insertDataToCloudFirestore(urlAvatar, uid);
+  }
+
+  Future<Null> insertDataToCloudFirestore(String urlAvatar, String uid) async {
+    UserModel model =
+        UserModel(name: name, position: choosePosition, urlAvatar: urlAvatar);
+
+    Map<String, dynamic> map = model.toJson();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .set(map)
+        .then((value) => Navigator.pop(context));
   }
 }

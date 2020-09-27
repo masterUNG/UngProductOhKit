@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ungproduct/utility/my_style.dart';
+import 'package:ungproduct/utility/normal_dialog.dart';
+import 'package:ungproduct/widget/my_service.dart';
 import 'package:ungproduct/widget/register.dart';
 
 class Authen extends StatefulWidget {
@@ -9,8 +13,16 @@ class Authen extends StatefulWidget {
 }
 
 class _AuthenState extends State<Authen> {
-  bool statusRedEye = true;
+  bool statusRedEye = true, wait = true;
   int indexTheme = 0;
+  String user, password;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkStatusLogin();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,20 +35,24 @@ class _AuthenState extends State<Authen> {
             colors: [Colors.white, MyStyle().primaryColors[indexTheme]],
           ),
         ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                buildContainer(),
-                buildText(),
-                buildTextFieldUser(),
-                buildTextFieldPassword(),
-                buildRaisedButton(),
-                buildFlatButton(),
-              ],
-            ),
-          ),
+        child: wait ? MyStyle().showProgress() : buildCenter(),
+      ),
+    );
+  }
+
+  Center buildCenter() {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            buildContainer(),
+            buildText(),
+            buildTextFieldUser(),
+            buildTextFieldPassword(),
+            buildRaisedButton(),
+            buildFlatButton(),
+          ],
         ),
       ),
     );
@@ -63,7 +79,16 @@ class _AuthenState extends State<Authen> {
         width: 250,
         child: RaisedButton(
           color: Color(0xFFE1A51A),
-          onPressed: () {},
+          onPressed: () {
+            if (user == null ||
+                user.isEmpty ||
+                password == null ||
+                password.isEmpty) {
+              normalDialog(context, 'Have Space ? Please Fill Every Blank');
+            } else {
+              checkAuthen();
+            }
+          },
           child: Text(
             'Login',
             style: TextStyle(
@@ -77,6 +102,8 @@ class _AuthenState extends State<Authen> {
         margin: EdgeInsets.only(bottom: 16),
         width: 250,
         child: TextField(
+          onChanged: (value) => user = value.trim(),
+          keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'User :',
@@ -87,6 +114,7 @@ class _AuthenState extends State<Authen> {
   Container buildTextFieldPassword() => Container(
         width: 250,
         child: TextField(
+          onChanged: (value) => password = value.trim(),
           obscureText: statusRedEye,
           decoration: InputDecoration(
             suffixIcon: IconButton(
@@ -118,5 +146,43 @@ class _AuthenState extends State<Authen> {
       width: 150,
       child: Image.asset('images/logo.png'),
     );
+  }
+
+  Future<Null> checkStatusLogin() async {
+    await Firebase.initializeApp().then((value) async {
+      await FirebaseAuth.instance.authStateChanges().listen((event) {
+        if (event != null) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MyService(),
+              ),
+              (route) => false);
+        } else {
+          setState(() {
+            wait = false;
+          });
+        }
+      });
+    });
+  }
+
+  Future<Null> checkAuthen() async {
+    await Firebase.initializeApp().then((value) async {
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: user, password: password)
+          .then(
+            (value) => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyService(),
+                ),
+                (route) => false),
+          )
+          .catchError((value) {
+        String string = value.message;
+        normalDialog(context, string);
+      });
+    });
   }
 }
